@@ -51,7 +51,7 @@ Go to `/tod` and execute `conda env create -f dslz.yml` to create a conda enviro
 
 ## Experiments
 
-Check [./tod/readme.org]() and [./chitchat/README.org]()
+Check [./tod/readme.org](https://github.com/liangzid/TEMP/blob/master/tod/readme.org) and [./chitchat/README.org](https://github.com/liangzid/TEMP/blob/master/chitchat/README.org) for instructions.
 
 ## References
 
