@@ -1,0 +1,23 @@
+#+title: ChitChat Related Experiments 
+#+author: Zi Liang
+#+date: Sun Oct  9 14:06:33 2022
+#+email: 2273067585@qq.com 
+#+latex_class: elegantpaper
+
+** Train a rephrasing model
+#+BEGIN_SRC sh
+bash 1.0.train_defender.sh
+#+END_SRC
+
+** ChitChat Inferences Experiments
+For baseline in parlai, you should first load in =DiaSaf_Dataset= and execute =transfer2parlaiformat.py= for formation transfering. Then, go back to the main directory and running =bash parlai_commands.sh= to obtain experiments results.
+
+After that, baseline in parlai or others can be evaluated by running =bash this_repo_path/3.0.running_all_experiments.sh=.
+
+** Neural Metrics Evaluation Experiments
+
+1. transfer the inference results into the target-metric formation. Frist =cd your-saved-inference-result-path=, then running =python transfer2XXX.py= to transfer your file into "XXX".
+2. load in the directory of neural metrics you want to use (e.g. /repo_path/neuralmetric/MDD-Eval/infer.sh), and run related scripts, like  =bash infer.sh=.
+
+
+

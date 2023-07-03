@@ -1,0 +1,22 @@
+
+* attributes
+
++ utterance
++ action
++ delexicalized responses
++ responses
++ BLEU-4
+  
+* BASELINE
+** Vanilla SOLOIST Dialogue
+
+** TEMP + EXP
+
+** TEMP + WTA
+
+** RoBERTA-BASE
+
+** CTG-SCGPT
+
+** SCGPT 
+

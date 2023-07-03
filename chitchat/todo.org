@@ -1,0 +1,64 @@
+
+#+author: zi liang
+#+date: Sun Jun 12 18:49:18 2022
+#+email: 2273067585@qq.com 
+#+latex_class: elegantpaper 
+
+
+* Now
+
+** Week <2022-08-20 六> to <2022-08-27 六>
+*** INPROGRESS 调通ParlAI的BAD模型，如果ParlAI上有其他的模型，加上！
+*** INPROGRESS 按照王老师上周给的建议，保证做到：our method在安全性上比基于分类器的方法要高
+*** DONE 构建起一个完整的shell脚本工作流，并撰写相关的Document
+**** DONE 修改对话模型微调的python脚本，修改为生成出来文件，然后走shell的一波流的路子。
+*** 制作明早需要汇报的PPT
+*** DONE EMNLP论文 review： rebuttal or resubmit
+
+* Past
+
+** ADC: Attacker, Defender, and Classifiers
+
++ 核心想法：将任务型对话系统里的安全性工作移动到闲聊上，以扩充解决思路的应用场景，并面对答辩老师在数据集真实度上的质疑。
++ 论文的讲述逻辑
+  1. 当前在对话系统（即闲聊）上做安全的工作的解决方案为：
+     1. 分类器检测异常对话，在推理时将其替换为一句万能模板回复；
+     2. 训练分类器，并使用分类器过滤掉训练集中所有的不安全的回复，之后使用安全回复进行回复生成；
+     3. 训练分类器，并使用分类器识别训练集中的不安全回复，将其替换为万能回复；
+     4. 使用分类器或人工标注标注每个机器人的回复是否安全，采用CTG的方法对模型进行训练。
+  2. 上述方法的问题：对话模型并没有显式地学到对冒犯性回复的修正方式，同时很容易被用户绕开。换句话说：对于数据过滤或CTG的方法，被过滤掉的错例很容易成为对话模型的弱点；而随机替换的方式则往往会因打断对话而降低用户的体验。
+  3. 解决思路：训练一个重写模型，使得该模型可以在保持和对话上下文一致的前提下将一句冒犯性回复映射为安全回复。同时，希望上述过程不会造成比已有方法更高的标注成本。具体地：将对话语料按照问题的语义进行预聚类，之后采用随机采样的方式构成新的语料，在采样时：通过分类器模块和一致性判别模块来判断所生成新训练样本的合理性，之后使用新生成的样本训练defender，同时通过attacker所设计的新问题来查看defender是否有其他弱点。（需要实验验证，可能会发生变化）
+
+** ADC: Attacker, Defender, and Classifiers
+
+1. first train a consistency classifier
+2. then train a initialized safety classifier
+3. construct training corpus based on semantic clustering
+4. training defender using constructed corpus 
+5. make random attack based on existing defender and classifier
+6. clustering new attack samples for next turn training
+# 7. Defender: T5-small. Input: dialogue history and offensive response; Output: a safe response 
+
+
+** week new
+*** DONE 对两个CLS的效果进行优化
+DEADLINE: <2022-07-05 周二>
+*** DONE 复现更多地已有方法
+DEADLINE: <2022-07-06 周三>
+***** DONE DialoGPT
+***** DONE BlenderBot
+***** TODO PeterBot
+*** DONE 增加已有的metric来评估quality
+DEADLINE: <2022-07-08 周五>
+*** DONE 测试precision和recall
+*** TODO 整理成API服务挂载在云端
+DEADLINE: <2022-07-09 周六>
+** week now
+*** DONE 复现CLS+replace的模型，重点查看其quality的结果
+*** DONE blender bot 效果复现
+*** DONE 调研寻找无监督的neural metric
+*** DONE 改进quality的评估
+*** DONE 指导学弟对话标注工具构建
+*** INPROGRESS 指导学弟BLUE论文的探索
+*** DONE 中期答辩PPT修改和测试预讲
+

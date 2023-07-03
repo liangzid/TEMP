@@ -1,0 +1,2 @@
+# import paraphrase.huggingface_transformers_self as huggingface_transformers_self
+import soloist.paraphrase.huggingface_transformers_self as huggingface_transformers_self

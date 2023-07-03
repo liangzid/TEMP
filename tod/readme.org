@@ -1,0 +1,534 @@
+#+title: TEMP
+
+
+* How do I get BASELINE results?
+
+** Environments
+
+Please following =./soloist/README.md=.
+
+You need to create a python env with version 3.7, and then install all packages
+in =./soloist/requirements.txt=, and finally you should install convlab2 for a fair
+evaluation.
+
+** Dataset
+You should download the raw Multiwoz2.1 dataset and run preprocess in
+=./soloist/README.md=.
+
+** Train and test step by step
+
+*** Neural Pipeline Models
+
+Just running one of bash scripts in =./soloist/*.sh=!
+
+For example, I will running =./soloist/2.3.soloist_pollution_pipeline.sh= for
+the whole pollution pipeline with soloist. you should change the options
+to switch to different neural pipeline models.
+
+An example code are as follows:
+
+#+BEGIN_SRC sh
+  #!/bin/bash
+
+  pollution_rate=("0.01" "0.02"  "0.04" "0.06" "0.08" "0.1")
+  export dataset_name="multiwoz-2.1-"
+  export model_save_path="_models_1"
+
+  num_id_ls=("1" "2" "3" "4" "5")
+  pollution_rate=("0.01" "0.02"  "0.04" "0.06" "0.08" "0.1")
+  pollution_rate=("0.04" "0.1")
+  pollution_rate=("0.04")
+  export dataset_name="multiwoz-2.1-"
+  export model_save_path="_soloist_models_"
+  export cuda_num=5
+
+  for num_id in ${num_id_ls[*]};
+  do
+      for rate in ${pollution_rate[*]};
+      do
+	  echo "1.0beginning to train with rate: $rate"
+	  python train_multiwoz.py \
+	      --train-dataset pollution${rate}-${dataset_name}train \
+	      --dev-dataset pollution${rate}-${dataset_name}val \
+	      --model ./augpt-bigdata/ \
+	      --backtranslations none \
+	      --response-loss unlikelihood \
+	      --epochs 5 \
+	      --gpu_num $cuda_num \
+	      --have_template 0\
+	      --use_wandb 0\
+	      --model_save_path $rate$model_save_path$num_id \
+	      --clean-samples 
+      done
+  done
+  echo "1.0 DONEEE."
+
+
+  echo "2. beginning to test pollution results."
+  echo ">>>2.1 begin to generate test files."
+  pollution_rate=("0.01" "0.02"  "0.04" "0.06" "0.08" "0.1")
+  num_id_ls=("1" "2" "3" "4" "5")
+  export dataset_name="multiwoz-2.1-"
+  export model_save_path="_soloist_models_"
+  export cuda_num=5
+  export python=/home/liangzi/anaconda3/envs/soloist/bin/python3
+
+  for num_id in ${num_id_ls[*]};
+  do
+      for rate in ${pollution_rate[*]};
+      do
+	  # echo "2.2.x beginning to evaluate model with rate: $rate"
+	  # python zcp_evaluate_multiwoz.py \
+	  #     --dataset ${dataset_name}test \
+	  #     --model ${rate}${model_save_path}${num_id} \
+	  #     --cuda_num $cuda_num \
+	  #     --save_file ${rate}_soloist_predict_files_${num_id}.txt
+
+	  export save_file_path="${rate}_soloist_predict_files_${num_id}.txt"
+	  $python evaluate_control.py \
+		  --load_file_name $save_file_path
+      done
+      echo "give ${num_id} done."
+  done
+
+  echo "2.2 DONEEE."
+
+  echo ">>>3.2.2 begin to evaluate its results."
+
+  # # running evluate_control.py
+  # python evalulate_control.py
+
+  echo "evaluation done."
+
+#+END_SRC
+
+*** Supervised Baseline
+
+**** CTG related
+
+Just running =./soloist/CTGModel/scgpt_pollution_training.sh=, like:
+
+
+#+BEGIN_SRC sh
+  #!/bin/bash
+
+  export python=/home/liangzi/anaconda3/envs/soloist/bin/python3
+  pollution_rate=("0.01" "0.02"  "0.04" "0.06" "0.08" "0.1")
+  export dataset_name="multiwoz-2.1-"
+  export model_save_path="_models_1"
+
+  num_id_ls=("1" "2" "3" "4"  "5")
+  num_id_ls=("1")
+  # pollution_rate=("0.01" "0.02"  "0.04" "0.06" "0.08" "0.1")
+  pollution_rate=("0.04" "0.1")
+  export dataset_name="multiwoz-2.1-"
+  export model_save_path="_models_"
+
+  for num_id in ${num_id_ls[*]};
+  do
+
+      for rate in ${pollution_rate[*]};
+      do
+	  echo "1.0beginning to train with rate: $rate"
+	  $python train_multiwoz.py \
+	      --train-dataset pollution${rate}-${dataset_name}train \
+	      --dev-dataset pollution${rate}-${dataset_name}val \
+	      --model ./augpt-bigdata/ \
+	      --backtranslations none \
+	      --response-loss unlikelihood \
+	      --epochs 1 \
+	      --gpu_num 1 \
+	      --batch-size 1\
+	      --have_template 0\
+	      --use_rettig 0\
+	      --backinference 4\
+	      --vision_mask 0 \
+	      --use_wandb 0\
+	      --model_save_path $rate$model_save_path$num_id \
+	      --fp16 \
+	      --clean-samples 
+      done
+  done
+  echo "1.0 DONEEE."
+
+  echo "2. beginning to test pollution results."
+  echo ">>>2.1 begin to generate test files."
+  # pollution_rate=("0.01" "0.02"  "0.04" "0.06" "0.08" "0.1")
+  # pollution_rate=("0.04" "0.06" "0.08" "0.1")
+  export pollution_rate=("0.04" "0.1")
+  export num_id_ls=("1" "2" "3" "4" "5")
+  export dataset_name="multiwoz-2.1-"
+  export model_save_path="_models_"
+
+  for num_id in ${num_id_ls[*]};
+  do
+      for rate in ${pollution_rate[*]};
+      do
+	  echo "2.2.x beginning to evaluate model with rate: $rate"
+	  $python evaluate_multiwoz.py \
+	      --dataset ${dataset_name}test \
+	      --cuda_num 1\
+	      --model ${rate}${model_save_path}${num_id}"-result" \
+	      --save_file ${rate}_predict_files_${num_id}.txt
+	  echo "give fraction ${rate} for times ${num_id} done."
+	  sleep 60
+      done
+  done
+
+  echo "2.2 DONEEE."
+
+  # echo ">>>3.2.2 begin to evaluate its results."
+
+  # # running evluate_control.py
+  # $python evalulate_control.py
+
+  # echo "evaluation done."
+#+END_SRC
+
+**** Roberta Classifier
+
+First =cd ./soloist/robertaCLS=, and then running =python3 roberta_classifier.py=. Here the python env is the same as TEMP introduced below.
+
+* How do I make data pollution in this paper?
+
+With the help of =./soloist/makepollution.py=, you should change the path of your multiwoz2.1 dataset as well as where you want to save the polluted datasets.
+
+* How do I training or test TEMP?
+
+** Running Environments
+
+See the list called =./dslz.yml=, like:
+
+
+#+BEGIN_SRC yml
+  name: dslz
+  channels:
+    - defaults
+  dependencies:
+    - _libgcc_mutex=0.1=main
+    - ca-certificates=2021.10.26=h06a4308_2
+    - certifi=2021.10.8=py37h06a4308_0
+    - ld_impl_linux-64=2.35.1=h7274673_9
+    - libffi=3.3=he6710b0_2
+    - libgcc-ng=9.1.0=hdf63c60_0
+    - libstdcxx-ng=9.1.0=hdf63c60_0
+    - ncurses=6.3=h7f8727e_2
+    - openssl=1.1.1l=h7f8727e_0
+    - pip=21.2.2=py37h06a4308_0
+    - python=3.7.11=h12debd9_0
+    - readline=8.1=h27cfd23_0
+    - setuptools=58.0.4=py37h06a4308_0
+    - sqlite=3.36.0=hc218d9a_0
+    - tk=8.6.11=h1ccaba5_0
+    - wheel=0.37.0=pyhd3eb1b0_1
+    - xz=5.2.5=h7b6447c_0
+    - zlib=1.2.11=h7b6447c_3
+    - pip:
+      - absl-py==1.0.0
+      - cachetools==4.2.4
+      - charset-normalizer==2.0.7
+      - click==8.0.3
+      - filelock==3.4.0
+      - fuzzywuzzy==0.18.0
+      - google-auth==2.3.3
+      - google-auth-oauthlib==0.4.6
+      - grpcio==1.42.0
+      - huggingface-hub==0.1.2
+      - idna==3.3
+      - importlib-metadata==4.8.2
+      - joblib==1.1.0
+      - markdown==3.3.6
+      - nltk==3.6.5
+      - numpy==1.21.4
+      - oauthlib==3.1.1
+      - packaging==21.3
+      - protobuf==3.19.1
+      - pyasn1==0.4.8
+      - pyasn1-modules==0.2.8
+      - pyparsing==3.0.6
+      - pyyaml==6.0
+      - regex==2021.11.10
+      - requests==2.26.0
+      - requests-oauthlib==1.3.0
+      - rsa==4.7.2
+      - sacremoses==0.0.46
+      - scipy==1.7.3
+      - sentencepiece==0.1.96
+      - six==1.16.0
+      - tensorboard==2.7.0
+      - tensorboard-data-server==0.6.1
+      - tensorboard-plugin-wit==1.8.0
+      - tokenizers==0.10.3
+      - tqdm==4.62.3
+      - transformers==4.12.5
+      - typing_extensions==4.0.0
+      - urllib3==1.26.7
+      - werkzeug==2.0.2
+      - zipp==3.6.0
+  prefix: /home/liangzi/anaconda3/envs/dslz
+#+END_SRC
+
+** Train and test step by step
+
+First =cd ./soloist/paraphrase=, and you will findout all shell scripts for different exepriments.
+
+You should first train a unified TEMP rephrasing model, and then use this model to inference all results of our baselines.
+
+For training, you can running different scripts, for example, =2.0.multi_target_learning_pipeline.sh=, like
+
+#+BEGIN_SRC sh
+  #!/bin/bash
+
+  export python=/home/zliang/anaconda3/envs/dslz/bin/python3
+  export root_dir="${HOME}/soloist/soloist/paraphrase/"
+
+  ##------------------------------------------------------------------------------------
+  export device="1"
+  export epochs=2
+  export batch_size=1
+  export lr=3e-5
+  export max_seq_length=128
+  export pretrained_model_path="${root_dir}/t5-small" 
+  export save_log_path="${root_dir}/log/grid-step.log"
+  # train stage.
+  # export save_model_path="${root_dir}/data/rettig_model/"
+  export step_list=("450" "550" "650")
+
+  export target_num=-1
+  for max_step in ${step_list[*]};
+  do
+      export save_model_path="${root_dir}/data/model_step_${max_step}/"
+      echo "--->>>BEGIN TO TRAINING with step ${max_step}."
+      ${python} train.py \
+	      --train=1 \
+	      --max_seq_length=${max_seq_length} \
+	      --max_step=$max_step \
+	      --device=${device} \
+	      --cuda_num=${device} \
+	      --epoch=${epochs} \
+	      --batch_size=${batch_size} \
+	      --lr=${lr} \
+	      --back_prediction=0 \
+	      --target_num=${target_num} \
+	      --board_name="mytest" \
+	      --sample_method="random" \
+	      --gbias=0 \
+	      --pretrained_model_path=${pretrained_model_path} \
+	      --save_model_path=${save_model_path} \
+	      --fraction=1.0 
+
+      rate=0.1
+      num_id=5
+      export dataset_name="multiwoz-2.1-"
+      export model_save_path="_models_"
+
+      export inference_model_name="data/model_step_${max_step}/"
+      export save_file_path="temp.txt"
+
+      cd ../
+
+      $python evaluate_multiwoz.py \
+	  --dataset ${dataset_name}test \
+	  --model ${rate}${model_save_path}${num_id} \
+	  --file ${rate}_predict_files_${num_id}.txt \
+	  --save_file ${save_file_path} \
+	  --inference_model ${inference_model_name} \
+	  --add_map 1\
+	  --gbias 0\
+	  --bp 0\
+	  --cuda_num=${device}
+
+
+      export save_file_path="temp.txt"
+      $python evaluate_control.py \
+	      --load_file_name $save_file_path
+
+      cd paraphrase/
+
+  done
+
+  echo "ALL things done."
+#+END_SRC
+
+
+ Inference time as well. For example ,you can running =SOLOIST+TEMP= by =soloist_all_experiments.sh=, like
+
+
+  #+BEGIN_SRC sh
+    #!/bin/bash
+
+    export python=/home/liangzi/anaconda3/envs/dslz/bin/python3
+    export root_dir="${HOME}/soloist/soloist/paraphrase/"
+
+    ##-----------------------------------------------------------------------------------------
+    export device="7"
+    # export epochs=4
+    export epochs=1
+    export batch_size=1
+    export lr=3e-5
+    export max_seq_length=128
+    # export import_pretrained_model_path="${root_dir}/data/electra-small-discriminator"
+    export pretrained_model_path="${root_dir}/t5-small" 
+    export save_log_path="${root_dir}/log/soloist_all_experiments.log"
+    # train stage.
+    export fraction="1.0"
+    export step=500
+    export prate_list=("0.01" "0.02" "0.04" "0.06" "0.08" "0.1")
+    export prate_list=("0.04")
+    export target_num=5
+
+
+    echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> tempering + exp+bp+multi-target 3"
+    # echo "--->>>BEGIN TO TRAINING in stage 1 with fraction ${frac}."
+    export target_num=5
+    export pretrained_model_path="${root_dir}/t5-small" 
+    export fraction_list=("1.0" "1.0" "1.0")
+    for prate in ${prate_list[*]};
+    do
+	# export save_model_path="${root_dir}/data/mt3-tempering-exp-bp_fraction1.0_prate${prate}/"
+
+	# for fraction in ${fraction_list[*]};
+	# do
+	# 	${python} train.py \
+	# 		--train=1 \
+	# 		--max_seq_length=${max_seq_length} \
+	# 		--max_step=${step} \
+	# 		--device=${device} \
+	# 		--cuda_num=${device} \
+	# 		--epoch=${epochs} \
+	# 		--prate=${prate} \
+	# 		--target_num=${target_num} \
+	# 		--batch_size=${batch_size} \
+	# 		--lr=${lr} \
+	# 		--back_prediction=1 \
+	# 		--sample_method=exp \
+	# 		--gbias=0 \
+	# 		--pretrained_model_path=${pretrained_model_path} \
+	# 		--save_model_path=${save_model_path} \
+	# 		--board_name=${save_model_path} \
+	# 		--fraction=${fraction} 
+	# 	export pretrained_model_path=$save_model_path
+	# done
+
+	cd ../
+	id_list=(1 2 3 4 5)
+
+	export rate=${prate}
+   
+	for num_id in ${id_list[*]};
+	do
+	    export dataset_name="multiwoz-2.1-"
+	    export model_save_path="_models_"
+
+	    export inference_model_name="data/mt3-tempering-exp-bp_fraction1.0_prate${prate}/"
+	    export save_file_path="soloist-mt3-tempering-exp-bp_fraction1.0_prate${prate}_numid${num_id}.txt"
+
+	    # $python evaluate_multiwoz.py \
+	    #     --dataset ${dataset_name}test \
+	    #     --model ${rate}${model_save_path}${num_id} \
+	    #     --file ${rate}_soloist_predict_files_${num_id}.txt \
+	    #     --save_file ${save_file_path} \
+	    #     --inference_model ${inference_model_name} \
+	    #     --add_map 1\
+	    #     --gbias 0\
+	    #     --bp 1\
+	    #     --cuda_num=${device}
+
+	    # if you have save the file, but not calculated the success rate, then use this commands.
+	    $python zcp_evaluate_multiwoz.py \
+		--dataset ${dataset_name}test \
+		--model ${rate}${model_save_path}${num_id} \
+		--file ${save_file_path} \
+		--add_map 0\
+		--gbias 0\
+		--bp 1\
+		--cuda_num=${device}
+
+	    $python evaluate_control.py \
+		    --load_file_name $save_file_path
+	done
+
+	cd paraphrase/
+    done
+    ##-----------------------------------------------------------------------------------------
+
+
+
+    echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> tempering + wta + bp + multi-target 3"
+    # echo "--->>>BEGIN TO TRAINING in stage 1 with fraction ${frac}."
+    export target_num=5
+    export pretrained_model_path="${root_dir}/t5-small" 
+    export fraction_list=("1.0" "1.0" "1.0")
+    for prate in ${prate_list[*]};
+    do
+	export save_model_path="${root_dir}/data/mt3-tempering-wta-bp_fraction1.0_prate${prate}/"
+
+	# for fraction in ${fraction_list[*]};
+	# do
+	# 	${python} train.py \
+	# 		--train=1 \
+	# 		--max_seq_length=${max_seq_length} \
+	# 		--max_step=${step} \
+	# 		--device=${device} \
+	# 		--cuda_num=${device} \
+	# 		--epoch=${epochs} \
+	# 		--prate=${prate} \
+	# 		--target_num=${target_num} \
+	# 		--batch_size=${batch_size} \
+	# 		--lr=${lr} \
+	# 		--back_prediction=1 \
+	# 		--sample_method=wta \
+	# 		--gbias=0 \
+	# 		--pretrained_model_path=${pretrained_model_path} \
+	# 		--save_model_path=${save_model_path} \
+	# 		--board_name=${save_model_path} \
+	# 		--fraction=${fraction} 
+	# 	export pretrained_model_path=$save_model_path
+	# done
+
+	cd ../
+	id_list=(1 2 3 4 5)
+
+	export rate=${prate}
+   
+	for num_id in ${id_list[*]};
+	do
+	    export dataset_name="multiwoz-2.1-"
+	    export model_save_path="_models_"
+
+	    export inference_model_name="data/mt3-tempering-wta-bp_fraction1.0_prate${prate}/"
+	    export save_file_path="soloist-mt3-tempering-wta-bp_fraction1.0_prate${prate}_numid${num_id}.txt"
+
+	    # $python evaluate_multiwoz.py \
+	    #     --dataset ${dataset_name}test \
+	    #     --model ${rate}${model_save_path}${num_id} \
+	    #     --file ${rate}_soloist_predict_files_${num_id}.txt \
+	    #     --save_file ${save_file_path} \
+	    #     --inference_model ${inference_model_name} \
+	    #     --add_map 1\
+	    #     --gbias 0\
+	    #     --bp 1\
+	    #     --cuda_num=${device}
+
+	    # if you have save the file, but not calculated the success rate, then use this commands.
+	    $python zcp_evaluate_multiwoz.py \
+		--dataset ${dataset_name}test \
+		--model ${rate}${model_save_path}${num_id} \
+		--file ${save_file_path} \
+		--add_map 0\
+		--gbias 0\
+		--bp 1\
+		--cuda_num=${device}
+	
+	    $python evaluate_control.py \
+		    --load_file_name $save_file_path
+	done
+
+	cd paraphrase/
+    done
+    ##-----------------------------------------------------------------------------------------
+
+#+END_SRC
+
+
+

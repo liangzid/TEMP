@@ -1,0 +1,12 @@
+*.log
+*__pycache__*
+tensorboard_summary
+t5-small
+*config.json*
+*merges.txt*
+*pytorch_model.bin*
+*special_tokens_map.json*
+*tokenizer_config.json*
+*vocab.json*
+*.json*
+*.log*
