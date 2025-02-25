@@ -1,9 +1,32 @@
-# TEMP: Healing Unsafe Dialogue Responses with Weak Supervision Signals
+# ISAAC: Exploring Intrinsic Alignments within Text Corpus
 
-This repository is the source code of the paper "Healing Unsafe Dialogue Responses with Weak Supervision Signals"([arxiv link](https://arxiv.org/abs/2305.15757)). 
+This repository is the source code of the paper "Exploring Intrinsic Alignments within Text Corpus"([arxiv link](https://arxiv.org/abs/2305.15757)). 
 
-## Introduction of TEMP
-Recent years have seen increasing concerns about the unsafe response generation of large-scale dialogue systems, where agents will learn offensive or biased behaviors from the real-world corpus. Some methods are proposed to address the above issue by detecting and replacing unsafe training examples in a pipeline style. Though effective, they suffer from a high annotation cost and adapt poorly to unseen scenarios as well as adversarial attacks. Besides, the neglect of providing safe responses (e.g. simply replacing with templates) will cause the information-missing problem of dialogues. To address these issues, we propose an unsupervised pseudo-label sampling method, TEMP, that can automatically assign potential safe responses. Specifically, our TEMP method groups responses into several clusters and samples multiple labels with an adaptively sharpened sampling strategy, inspired by the observation that unsafe samples in the clusters are usually few and distribute in the tail. Extensive experiments in chitchat and task-oriented dialogues show that our TEMP outperforms state-of-the-art models with weak supervision signals and obtains comparable results under unsupervised learning settings.
+## Introduction of ISAAC
+Recent years have witnessed rapid advancements in the safety
+alignments of large language models (LLMs). Methods such as 
+supervised instruction fine-tuning (SFT) and
+reinforcement learning with human feedback (RLHF) have thus emerged as vital components in constructing LLMs.
+While these methods achieve robust and fine-grained
+alignment to human values, their practical application is
+still hindered by high annotation costs and incomplete
+human alignments. Besides, the intrinsic human values within
+training corpora have not been fully exploited.
+To address these issues, we propose ISAAC (Intrinsically Supervised
+Alignments by Assessing Corpus), a primary and coarse-grained safety
+alignment strategy for LLMs. ISAAC only relies on a prior assumption
+about the text corpus, and does not require preferences in RLHF or
+human responses selection in SFT. 
+Specifically, it assumes a long-tail distribution of text corpus and
+employs a specialized sampling strategy to automatically sample high-quality responses.
+Theoretically, we prove that this strategy can improve the safety of LLMs
+under our assumptions. Empirically, our evaluations on mainstream LLMs
+show that ISAAC achieves a safety score comparable to current SFT
+solutions. Moreover, we conduct experiments on ISAAC for some
+RLHF-based LLMs, where we find that ISAAC can even improve the safety
+of these models under specific safety domains. These findings
+demonstrate that ISAAC can provide preliminary alignment to LLMs, thereby reducing the construction costs of existing human-feedback-based methods.
+
 
 ### Comparison of Dialogue Safety Solutions
 
@@ -26,7 +49,7 @@ Recent years have seen increasing concerns about the unsafe response generation 
 
 This source code is under `python 3.8`and might require`python>=3.8` for your environment.
 
-First `git clone https://github.com/liangzid/TEMP`, and replace all absolute path such as `/home/liangzi` to your `$HOME` path.
+First `git clone https://github.com/liangzid/ISAAC`, and replace all absolute path such as `/home/liangzi` to your `$HOME` path.
 
 Go to `/tod` and execute `conda env create -f dslz.yml` to create a conda environment. You can also `pip install -r re.txt` in root directory. There are some key packages:
 
@@ -51,20 +74,8 @@ Go to `/tod` and execute `conda env create -f dslz.yml` to create a conda enviro
 
 ## Experiments
 
-Check [./tod/readme.org](https://github.com/liangzid/TEMP/blob/master/tod/readme.org) and [./chitchat/README.org](https://github.com/liangzid/TEMP/blob/master/chitchat/README.org) for instructions.
+Check [./tod/readme.org](https://github.com/liangzid/ISAAC/blob/master/tod/readme.org) and [./chitchat/README.org](https://github.com/liangzid/ISAAC/blob/master/chitchat/README.org) for instructions.
 
-## References
-
-```
-@misc{liang2023healing,
-      title={Healing Unsafe Dialogue Responses with Weak Supervision Signals}, 
-      author={Zi Liang and Pinghui Wang and Ruofei Zhang and Shuo Zhang and Xiaofan Ye Yi Huang and Junlan Feng},
-      year={2023},
-      eprint={2305.15757},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
-}
-```
 
 
 
